@@ -41,6 +41,7 @@
     </div>
 
     <script>
+        let timechange = 5;
         let files = document.getElementsByClassName('file');
         let currentIndex = 0;
         files[0].style.display = 'block';
@@ -74,7 +75,7 @@
                 console.log(files[currentIndex].duration)
                 return files[currentIndex].duration;
             }
-            return 2;
+            return timechange;
         }
 
         function reloadPage() {
