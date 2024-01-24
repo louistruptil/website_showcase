@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Viewer</title>
+</head>
+
+<body>
+    <style>
+        * {
+            margin: 0;
+        }
+        .file {
+            display: none;
+        }
+        .website {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Set z-index to bring it to the front */
+        }
+    </style>
+
+    <div id="file-container">
+        {% for file in files %}
+            {% if file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                <img class="file" src="{{ url_for('serve_file', filename=file) }}" alt="{{ file }}">
+            {% elif file.lower().endswith(('.mp4', '.webm')) %}
+                <video class="file" muted>
+                    <source src="{{ url_for('serve_file', filename=file) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <iframe class="file website" src="{{ file }}"></iframe>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <script>
+        let files = document.getElementsByClassName('file');
+        let currentIndex = 0;
+        files[0].style.display = 'block';
+        files[0].style.width = "100%";
+        files[0].style.aspectRatio = window.innerWidth / window.innerHeight;
+        files[0].style.objectFit = 'cover';
+        files[0].style.display = 'block';
+        let fileNames = [
+            {% for file in files %}
+                "{{ file }}",
+            {% endfor %}
+        ];
+
+        function showNextFile() {
+            files[currentIndex].style.display = 'none';
+            currentIndex = (currentIndex + 1) % files.length;
+            console.log("File Extension:", fileNames[currentIndex]);
+            files[currentIndex].style.width = "100%";
+            files[currentIndex].style.aspectRatio = window.innerWidth / window.innerHeight;
+            files[currentIndex].style.objectFit = 'cover';
+            files[currentIndex].style.display = 'block';
+
+            if (fileNames[currentIndex].split('.').pop() === "mp4") {
+                files[currentIndex].currentTime = 0; 
+                files[currentIndex].play();
+            }
+        }
+
+        function getTime() {
+            if (fileNames[currentIndex].split('.').pop() === "mp4") {
+                console.log(files[currentIndex].duration)
+                return files[currentIndex].duration;
+            }
+            return 2;
+        }
+
+        function reloadPage() {
+            let lastTime = getTime(currentIndex);
+            
+            let refreshInterval = setInterval(function() {
+                showNextFile();
+                let actualTime = getTime(currentIndex);
+                if (lastTime != actualTime) {
+                    clearInterval(refreshInterval);
+                    reloadPage()
+                }
+            }, lastTime * 1000);
+        }
+
+        window.onload = function() {
+            reloadPage();
+        };
+    </script>
+</body>
+</html>
